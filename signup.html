@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoadGuard AI — Login</title>
+    <title>RoadGuard AI — Signup</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -180,17 +180,17 @@
         .btn-google:hover {
             background: rgba(255, 255, 255, 0.05);
         }
-        .signup-link {
+        .login-link {
             margin-top: 32px;
             font-size: 12px;
             color: rgba(255, 255, 255, 0.6);
         }
-        .signup-link a {
+        .login-link a {
             color: var(--cyan);
             text-decoration: none;
             font-weight: 600;
         }
-        .signup-link a:hover {
+        .login-link a:hover {
             text-decoration: underline;
         }
         #error-div {
@@ -209,26 +209,28 @@
     <div class="login-card">
         <span class="shield">🛡️</span>
         <h1>ROADGUARD AI</h1>
-        <p class="subtitle">SECURE ACCESS PORTAL</p>
+        <p class="subtitle">CREATE ACCOUNT</p>
         <div class="divider-line"></div>
         
         <div id="error-div"></div>
         
-        <form id="login-form">
+        <form id="signup-form">
+            <input type="text" id="fullname" placeholder="Full Name" required>
             <input type="email" id="email" placeholder="Email Address" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit" id="submit-btn" class="btn-primary">[ LOGIN ]</button>
+            <input type="password" id="password" placeholder="Password (min 6 chars)" required minlength="6">
+            <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            <button type="submit" id="submit-btn" class="btn-primary">[ CREATE ACCOUNT ]</button>
         </form>
         
         <div class="or-divider">— OR —</div>
         
         <button id="google-btn" class="btn-google">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/callback/google.svg" width="18" alt="Google">
-            [ SIGN IN WITH GOOGLE ]
+            [ SIGN UP WITH GOOGLE ]
         </button>
         
-        <div class="signup-link">
-            Don't have an account? <a href="signup.html">SIGN UP</a>
+        <div class="login-link">
+            Already have an account? <a href="index.html">LOGIN</a>
         </div>
     </div>
 
@@ -249,9 +251,11 @@
             if (user) window.location.href = 'app.html';
         });
 
-        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const fullnameInput = document.getElementById('fullname');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm-password');
         const submitBtn = document.getElementById('submit-btn');
         const googleBtn = document.getElementById('google-btn');
         const errorDiv = document.getElementById('error-div');
@@ -261,22 +265,38 @@
             errorDiv.style.display = 'block';
         }
 
-        loginForm.addEventListener('submit', (e) => {
+        signupForm.addEventListener('submit', (e) => {
             e.preventDefault();
             errorDiv.style.display = 'none';
+
+            if (passwordInput.value !== confirmInput.value) {
+                showError("Passwords do not match");
+                return;
+            }
+
+            if (passwordInput.value.length < 6) {
+                showError("Password should be at least 6 characters");
+                return;
+            }
+
             submitBtn.textContent = 'AUTHENTICATING...';
             submitBtn.disabled = true;
 
             const email = emailInput.value;
             const password = passwordInput.value;
+            const fullName = fullnameInput.value;
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    window.location.href = 'app.html';
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    return userCredential.user.updateProfile({
+                        displayName: fullName
+                    }).then(() => {
+                        window.location.href = 'app.html';
+                    });
                 })
                 .catch(err => {
                     showError(err.message);
-                    submitBtn.textContent = '[ LOGIN ]';
+                    submitBtn.textContent = '[ CREATE ACCOUNT ]';
                     submitBtn.disabled = false;
                 });
         });
